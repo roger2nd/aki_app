@@ -18,13 +18,13 @@ const App = () => {
 };
 
 const RootNavigator = () => {
-  const { userToken, isLoading } = React.useContext(AuthContext);
+  const { user, isLoading } = React.useContext(AuthContext);
 
   if (isLoading) {
     return <SplashScreen />;
   }
 
-  return userToken ? <AppStack /> : <AuthStack />;
+  return user ? <AppStack /> : <AuthStack />;
 };
 
 const SplashScreen = () => (

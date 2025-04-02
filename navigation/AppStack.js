@@ -1,65 +1,143 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Button } from 'react-native-paper';
+import { AuthContext } from '../scripts/Authenticator';
 import HomeScreen from '../screens/Home';
 import ManageStudentsScreen from '../screens/GerenciadorAlunos';
 import TakeAttendanceScreen from '../screens/ChecarChamada';
 import ViewAttendanceScreen from '../screens/VisualizarChamada';
+import ClassroomSetupScreen from '../screens/SalaDeAulaLocation';
+import StudentDashboard from '../screens/AlunosDashboard';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const HomeStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen 
-      name="Home" 
-      component={HomeScreen} 
-      options={{ title: 'Classroom Attendance' }}
-    />
-  </Stack.Navigator>
-);
+const AdminTabs = ({ navigation }) => {
+  const { logout } = useContext(AuthContext);
+  
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button 
+          onPress={logout}
+          icon="logout"
+          color="#6200ee"
+          style={{ marginRight: 10 }}
+        >
+          Logout
+        </Button>
+      ),
+    });
+  }, [navigation]);
 
-const AppTabs = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color, size }) => {
-        let iconName;
-
-        if (route.name === 'Home') {
-          iconName = focused ? 'home' : 'home';
-        } else if (route.name === 'Students') {
-          iconName = focused ? 'people' : 'people-outline';
-        } else if (route.name === 'Attendance') {
-          iconName = focused ? 'event-note' : 'event-note';
-        } else if (route.name === 'History') {
-          iconName = focused ? 'history' : 'history';
-        }
-
-        return <MaterialIcons name={iconName} size={size} color={color} />;
-      },
-    })}
-    tabBarOptions={{
-      activeTintColor: '#6200ee',
-      inactiveTintColor: 'gray',
-    }}
-  >
-    <Tab.Screen name="Home" component={HomeStack} />
-    <Tab.Screen name="Students" component={ManageStudentsScreen} />
-    <Tab.Screen name="Attendance" component={TakeAttendanceScreen} />
-    <Tab.Screen name="History" component={ViewAttendanceScreen} />
-  </Tab.Navigator>
-);
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#6200ee',
+        headerRight: () => (
+          <Button 
+            onPress={logout}
+            icon="logout"
+            color="#6200ee"
+            style={{ marginRight: 10 }}
+          >
+            Logout
+          </Button>
+        ),
+      }}
+    >
+      <Tab.Screen 
+        name="ManageStudents" 
+        component={ManageStudentsScreen}
+        options={{
+          tabBarLabel: 'Students',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="TakeAttendance" 
+        component={TakeAttendanceScreen}
+        options={{
+          tabBarLabel: 'Attendance',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="event-available" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="ViewAttendance" 
+        component={ViewAttendanceScreen}
+        options={{
+          tabBarLabel: 'History',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="history" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const AppStack = () => {
+  const { user, logout } = useContext(AuthContext);
+
+  const screenOptions = {
+    headerRight: () => (
+      <Button 
+        onPress={logout}
+        icon="logout"
+        color="#6200ee"
+        style={{ marginRight: 10 }}
+      >
+        Logout
+      </Button>
+    ),
+    headerTitleStyle: {
+      fontWeight: 'bold',
+    },
+  };
+
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={screenOptions}>
+    {user?.role === 'admin' ? (
+      user.classroomLocation ? (
+        <Stack.Screen
+          name="AdminMain"
+          component={AdminTabs}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        <Stack.Screen
+          name="ClassroomSetup"
+          component={ClassroomSetupScreen}
+          options={{ 
+            title: 'Setup Classroom',
+            headerRight: () => (
+              <Button 
+                onPress={() => logout()}
+                icon="logout"
+                color="#6200ee"
+                style={{ marginRight: 10 }}
+              >
+                Logout
+              </Button>
+            ),
+          }}
+        />
+      )
+    ) : (
       <Stack.Screen 
-        name="App" 
-        component={AppTabs} 
-        options={{ headerShown: false }}
+        name="StudentDashboard" 
+        component={StudentDashboard} 
+        options={{ title: 'Student Dashboard' }}
       />
-    </Stack.Navigator>
+    )}
+  </Stack.Navigator>
   );
 };
 

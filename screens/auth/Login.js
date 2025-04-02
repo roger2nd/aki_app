@@ -1,45 +1,44 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
+import { Button, Text } from 'react-native-paper';
 import { AuthContext } from '../../scripts/Authenticator';
 import AuthForm from '../../components/AuthForm';
-import { MaterialIcons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [tuitionNumber, setTuitionNumber] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useContext(AuthContext);
+  
+  const { login, testAccounts } = useContext(AuthContext);
 
   const handleLogin = async () => {
     if (!tuitionNumber || !password) {
-      Alert.alert('Error', 'Please enter both tuition number and password');
+      Alert.alert('Error', 'Por favor insira o numero de matricula e a senha');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Checagem na API (firebase)
-      const userData = {
-        tuitionNumber,
-        name: "Demo Teacher",
-        role: "teacher" 
-      }; // Placeholder para uma possivel resposta da API (firebase)
-      await login(userData);
+      // BACKEND API - Credenciais
+      const success = await login(tuitionNumber, password);
+
+      if (!success) {
+        Alert.alert('Error', 'Credenciais Invalida');
+      }
     } catch (error) {
-      Alert.alert('Login Failed', error.message);
+      Alert.alert('Login Falhou', error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loginWithTestAccount = (account) => {
+    setTuitionNumber(account.tuitionNumber);
+    setPassword(account.password);
+  };
+
   return (
     <View style={styles.container}>
-      <MaterialIcons 
-        name="school" 
-        size={100} 
-        color="#6200ee" 
-        style={styles.icon}
-      />
       <AuthForm
         tuitionNumber={tuitionNumber}
         setTuitionNumber={setTuitionNumber}
@@ -49,20 +48,66 @@ const LoginScreen = ({ navigation }) => {
         onSubmit={handleLogin}
         navigation={navigation}
         isLoading={isLoading}
+        title="Bem Vindo de volta"
+        submitText="Login"
       />
-    </View>
+        <View style={styles.testAccountsContainer}>
+          <Text style={styles.testAccountsTitle}>Test Accounts:</Text>
+          
+          <Button 
+            mode="outlined" 
+            onPress={() => loginWithTestAccount(testAccounts.admin)}
+            style={styles.testAccountButton}
+            icon="account-tie"
+          >
+            Login as Admin
+          </Button>
+          
+          <Button 
+            mode="outlined" 
+            onPress={() => loginWithTestAccount(testAccounts.student)}
+            style={styles.testAccountButton}
+            icon="account"
+          >
+            Login as Student
+          </Button>
+        </View>
+    </View>   
   );
 };
 
-const styles = StyleSheet.create({
+//TEST
+const styles = {
   container: {
     flex: 1,
+    padding: 20,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   icon: {
-    marginBottom: 30,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
-});
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
+    color: '#6200ee',
+  },
+  testAccountsContainer: {
+    marginTop: 30,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 20,
+  },
+  testAccountsTitle: {
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#666',
+  },
+  testAccountButton: {
+    marginVertical: 5,
+  },
+};
 
 export default LoginScreen;

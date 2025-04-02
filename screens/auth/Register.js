@@ -1,72 +1,64 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { Alert } from 'react-native';
 import { AuthContext } from '../../scripts/Authenticator';
 import AuthForm from '../../components/AuthForm';
-import { MaterialIcons } from '@expo/vector-icons';
 
 const RegisterScreen = ({ navigation }) => {
   const [tuitionNumber, setTuitionNumber] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student');
   const [isLoading, setIsLoading] = useState(false);
+  
   const { login } = useContext(AuthContext);
 
   const handleRegister = async () => {
     if (!tuitionNumber || !name || !password) {
-      Alert.alert('Error', 'Please fill all fields');
+      Alert.alert('Error', 'Por favor complete todos os campos');
       return;
     }
 
     setIsLoading(true);
     try {
-      // In a real app, you would register with your backend
-      const userData = {
+      const success = await register({
         tuitionNumber,
         name,
-        role: "teacher"
-      };
-      await login(userData);
-      Alert.alert('Success', 'Registration successful');
+        password,
+        role,
+        registeredAt: new Date().toISOString()
+      });
+
+      if (success) {
+        Alert.alert('Success', 'Registration successful! Please login');
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Error', 'Registration failed');
+      }
     } catch (error) {
-      Alert.alert('Registration Failed', error.message);
+      Alert.alert('Registro Falhou', error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <MaterialIcons 
-        name="person-add" 
-        size={100} 
-        color="#6200ee" 
-        style={styles.icon}
-      />
-      <AuthForm
-        tuitionNumber={tuitionNumber}
-        setTuitionNumber={setTuitionNumber}
-        password={password}
-        setPassword={setPassword}
-        name={name}
-        setName={setName}
-        isLogin={false}
-        onSubmit={handleRegister}
-        navigation={navigation}
-        isLoading={isLoading}
-      />
-    </View>
+    <AuthForm
+      tuitionNumber={tuitionNumber}
+      setTuitionNumber={setTuitionNumber}
+      name={name}
+      setName={setName}
+      password={password}
+      setPassword={setPassword}
+      role={role}
+      setRole={setRole}
+      isLogin={false}
+      onSubmit={handleRegister}
+      navigation={navigation}
+      isLoading={isLoading}
+      title="Criar Conta"
+      submitText="Registrar"
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  icon: {
-    marginBottom: 30,
-  },
-});
 
 export default RegisterScreen;
