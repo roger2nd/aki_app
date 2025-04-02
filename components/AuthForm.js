@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ROUTES } from '../routes';
 
 const AuthForm = ({
   tuitionNumber,
@@ -18,24 +19,17 @@ const AuthForm = ({
   isLoading,
   title,
   submitText,
-  disableIcon,
+  icon,
 }) => {
   return (
     <View style={styles.container}>
-      { !disableIcon && <MaterialCommunityIcons 
-        name={isLogin ? "school" : "account-plus"} 
-        size={80} 
-        color="#6200ee" 
-        style={styles.icon}
-      />
-      }
       <MaterialCommunityIcons 
-        name={isLogin ? "login" : "account-plus"} 
+        name={isLogin ? icon : "account-plus"} 
         size={80} 
         color="#6200ee" 
         style={styles.icon}
       />
-      
+           
       {title && <Text style={styles.title}>{title}</Text>}
 
       {/* Tuition Number Field */}
@@ -77,11 +71,11 @@ const AuthForm = ({
           <RadioButton.Group onValueChange={setRole} value={role}>
             <View style={styles.radioOption}>
               <RadioButton value="student" />
-              <Text>Student</Text>
+              <Text>Aluno</Text>
             </View>
             <View style={styles.radioOption}>
               <RadioButton value="admin" />
-              <Text>Administrator</Text>
+              <Text>Admin</Text>
             </View>
           </RadioButton.Group>
         </>
@@ -101,7 +95,7 @@ const AuthForm = ({
 
       {/* Toggle between Login/Register */}
       <Button
-        onPress={() => navigation.navigate(isLogin ? 'Register' : 'Login')}
+        onPress={() => navigation.navigate(isLogin ? ROUTES.REGISTER : ROUTES.LOGIN)}
         style={styles.toggleButton}
         labelStyle={styles.toggleButtonText}
       >

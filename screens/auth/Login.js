@@ -50,9 +50,10 @@ const LoginScreen = ({ navigation }) => {
         isLoading={isLoading}
         title="Bem Vindo de volta"
         submitText="Login"
+        icon="login"
       />
         <View style={styles.testAccountsContainer}>
-          <Text style={styles.testAccountsTitle}>Test Accounts:</Text>
+          <Text style={styles.testAccountsTitle}>Contas de Teste:</Text>
           
           <Button 
             mode="outlined" 
@@ -60,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
             style={styles.testAccountButton}
             icon="account-tie"
           >
-            Login as Admin
+            Login como Admin
           </Button>
           
           <Button 
@@ -69,7 +70,7 @@ const LoginScreen = ({ navigation }) => {
             style={styles.testAccountButton}
             icon="account"
           >
-            Login as Student
+            Login como Aluno
           </Button>
         </View>
     </View>   

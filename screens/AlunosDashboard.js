@@ -145,7 +145,7 @@ const StudentDashboard = ({ navigation }) => {
             style={styles.button}
             icon="map-marker-check"
           >
-            Mark My Attendance
+            AKI
           </Button>
           
           {lastAttendance && (

@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Alert } from 'react-native';
 import { AuthContext } from '../../scripts/Authenticator';
 import AuthForm from '../../components/AuthForm';
+import { ROUTES } from '../../routes';
 
 const RegisterScreen = ({ navigation }) => {
   const [tuitionNumber, setTuitionNumber] = useState('');
@@ -30,7 +31,7 @@ const RegisterScreen = ({ navigation }) => {
 
       if (success) {
         Alert.alert('Success', 'Registration successful! Please login');
-        navigation.navigate('Login');
+        navigation.navigate(ROUTES.LOGIN);
       } else {
         Alert.alert('Error', 'Registration failed');
       }

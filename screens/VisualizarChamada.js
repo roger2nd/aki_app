@@ -46,7 +46,7 @@ const ViewAttendanceScreen = ({ navigation }) => {
     <View style={styles.container}>
       {!selectedDate ? (
         <>
-          <Text style={styles.title}>Attendance History</Text>
+          <Text style={styles.title}>Historio de Presenca</Text>
           <ScrollView style={styles.listContainer}>
             {attendanceRecords.map(record => (
               <Card key={record.date} style={styles.card}>
@@ -55,11 +55,11 @@ const ViewAttendanceScreen = ({ navigation }) => {
                   <View style={styles.statsContainer}>
                     <Text style={styles.present}>
                       <MaterialIcons name="check" size={16} color="green" /> 
-                      {record.records.filter(r => r.present).length} Present
+                      {record.records.filter(r => r.present).length} Presentes
                     </Text>
                     <Text style={styles.absent}>
                       <MaterialIcons name="close" size={16} color="red" /> 
-                      {record.records.filter(r => !r.present).length} Absent
+                      {record.records.filter(r => !r.present).length} Faltantes
                     </Text>
                   </View>
                 </Card.Content>
@@ -68,13 +68,13 @@ const ViewAttendanceScreen = ({ navigation }) => {
                     onPress={() => setSelectedDate(record.date)}
                     icon="eye"
                   >
-                    View
+                    Visualizar
                   </Button>
                   <Button 
                     onPress={() => deleteAttendanceRecord(record.date)}
                     icon="delete"
                   >
-                    Delete
+                    Deletar
                   </Button>
                 </Card.Actions>
               </Card>
@@ -91,7 +91,7 @@ const ViewAttendanceScreen = ({ navigation }) => {
             style={styles.backButton}
             icon="arrow-left"
           >
-            Back to List
+            Voltar
           </Button>
           
           <ScrollView>

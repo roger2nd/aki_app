@@ -10,14 +10,24 @@ const TEST_ACCOUNTS = {
     name: 'Test Admin',
     password: 'admin123',
     role: 'admin',
-    registeredAt: new Date().toISOString()
+    registeredAt: new Date().toISOString(),
+    classroomLocation: {
+      latitude: 37.7749,
+      longitude: -122.4194
+    },
+    geofenceRadius: 10
   },
   student: {
     tuitionNumber: '2001',
     name: 'Test Student',
     password: 'student123',
     role: 'student',
-    registeredAt: new Date().toISOString()
+    registeredAt: new Date().toISOString(),
+    classroomLocation: {
+      latitude: 37.7749,
+      longitude: -122.4194
+    },
+    geofenceRadius: 10
   }
 };
 
@@ -58,13 +68,21 @@ export const AuthProvider = ({ children }) => {
 
   const saveClassroomSettings = async (location, radius) => {
     try {
-      const settings = JSON.stringify({ location, radius });
-      await SecureStore.setItemAsync('classroomSettings', settings);
-      setClassroomLocation(location);
-      setGeofenceRadius(radius);
+      const updatedUser = {
+        ...user,
+        classroomLocation: location,
+        geofenceRadius: radius
+      };
+      // TEST
+      if (![TEST_ACCOUNTS.admin.tuitionNumber, TEST_ACCOUNTS.student.tuitionNumber].includes(user.tuitionNumber)) {
+        await SecureStore.setItemAsync('userData', JSON.stringify(updatedUser));
+      }
+      //T TEST
+      setUser(updatedUser);
+      return true;
     } catch (e) {
-      console.error('Falha ao salvar as configuracoes da sala de aula', e);
-      throw e;
+      console.error('Failed to save classroom settings', e);
+      return false;
     }
   };
 
@@ -79,8 +97,9 @@ export const AuthProvider = ({ children }) => {
   }; */
 
   const login = async (tuitionNumber, password) => {
+    console.log('Attempting login with:', tuitionNumber);
     try {
-      // Check test accounts first
+      // TEST
       if (tuitionNumber === TEST_ACCOUNTS.admin.tuitionNumber && password === TEST_ACCOUNTS.admin.password) {
         setUser(TEST_ACCOUNTS.admin);
         return true;
@@ -89,6 +108,7 @@ export const AuthProvider = ({ children }) => {
         setUser(TEST_ACCOUNTS.student);
         return true;
       }
+      // TEST
 
       // Check registered users
       const userData = await SecureStore.getItemAsync('userData');
@@ -108,10 +128,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Skip saving test accounts to storage
+      // TEST
       if (![TEST_ACCOUNTS.admin.tuitionNumber, TEST_ACCOUNTS.student.tuitionNumber].includes(userData.tuitionNumber)) {
         await SecureStore.setItemAsync('userData', JSON.stringify(userData));
       }
+      //TEST
       setUser(userData);
       return true;
     } catch (e) {
@@ -132,10 +153,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Don't clear storage for test accounts
+      // TEST
       if (![TEST_ACCOUNTS.admin.tuitionNumber, TEST_ACCOUNTS.student.tuitionNumber].includes(user?.tuitionNumber)) {
         await SecureStore.deleteItemAsync('userData');
       }
+      // TEST
       setUser(null);
     } catch (e) {
       console.error('Failed to logout', e);

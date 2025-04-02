@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider } from './scripts/Authenticator';
 import AuthStack from './navigation/AuthStack';
-import AppStack from './navigation/AppStack';
+import MainStack from './navigation/AppStack';
 import { AuthContext } from './scripts/Authenticator';
 import { View, ActivityIndicator } from 'react-native';
 
@@ -24,7 +24,8 @@ const RootNavigator = () => {
     return <SplashScreen />;
   }
 
-  return user ? <AppStack /> : <AuthStack />;
+  console.log('Rendering:', user ? 'MainStack' : 'AuthStack');
+  return user ? <MainStack /> : <AuthStack />;
 };
 
 const SplashScreen = () => (

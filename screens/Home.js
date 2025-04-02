@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Button, Card, Title, Appbar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
+import { ROUTES } from '../routes';
 
 const HomeScreen = ({ navigation }) => {
   const { logout } = useContext(AuthContext);
@@ -11,7 +12,7 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={styles.title}>Classroom Attendance</Title>
+          <Title style={styles.title}>Dashboard</Title>
           <MaterialIcons 
             name="school" 
             size={80} 
@@ -20,27 +21,27 @@ const HomeScreen = ({ navigation }) => {
           />
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate('Students')}
+            onPress={() => navigation.navigate(ROUTES.GERENCIADOR_ALUNOS)}
             style={styles.button}
             icon="account-multiple"
           >
-            Manage Students
+            Gerenciar Alunos
           </Button>
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate('Attendance')}
+            onPress={() => navigation.navigate(ROUTES.CHECAR_PRESENCA)}
             style={styles.button}
             icon="calendar-check"
           >
-            Take Attendance
+            Presenca
           </Button>
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate('History')}
+            onPress={() => navigation.navigate(ROUTES.HISTORICO_PRESENCA)}
             style={styles.button}
             icon="history"
           >
-            View History
+            Historico
           </Button>
           <Button 
             mode="outlined" 

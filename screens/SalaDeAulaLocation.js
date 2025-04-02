@@ -4,11 +4,12 @@ import { Button, Text, TextInput } from 'react-native-paper';
 import * as Location from 'expo-location';
 import { AuthContext } from '../scripts/Authenticator';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { ROUTES } from '../routes';
+//import { useNavigation } from '@react-navigation/native';
 
-const ClassroomSetupScreen = () => {
+const ClassroomSetupScreen = ({ navigation }) => {
   const { saveClassroomSettings } = useContext(AuthContext);
-  const navigation = useNavigation();
+  //const navigation = useNavigation();
   const [radius, setRadius] = useState('50');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +19,7 @@ const ClassroomSetupScreen = () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission denied', 'Location permission is required');
-        return;
+        return null;
       }
 
       let location = await Location.getCurrentPositionAsync({});
@@ -28,9 +29,10 @@ const ClassroomSetupScreen = () => {
       };
     } catch (error) {
       Alert.alert('Error', 'Falha em capturar a localizacao');
-      } finally {
-        setIsLoading(false);
-      }
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -39,10 +41,11 @@ const ClassroomSetupScreen = () => {
 
     try {
       await saveClassroomSettings(location, parseInt(radius));
-      Alert.alert('Sucesso', 'Localizacao salva!');
-      navigation.navigate('AdminMain');
+       // Proper navigation reset
+       navigation.navigate(ROUTES.MAIN);
+      
     } catch (error) {
-      Alert.alert('Error', 'Salvamento falhou');
+      Alert.alert('Error', error.message);
     }
   };
 
@@ -66,7 +69,6 @@ const ClassroomSetupScreen = () => {
         style={styles.input}
         left={<TextInput.Icon name="map-marker-radius" />}
       />
-      
       <Button
         mode="contained"
         onPress={handleSave}
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,

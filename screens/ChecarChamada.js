@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { List, Checkbox, Button, Text, FAB } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { List, Checkbox, Text, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
@@ -29,7 +29,7 @@ const TakeAttendanceScreen = ({ navigation }) => {
         setAttendance(initialAttendance);
       }
     } catch (e) {
-      console.error('Failed to load students', e);
+      console.error('Carregamento falhou', e);
     }
   };
 
@@ -57,7 +57,6 @@ const TakeAttendanceScreen = ({ navigation }) => {
       let allRecords = [];
       if (existingRecords) {
         allRecords = JSON.parse(existingRecords);
-        // Remove if there's already a record for this date
         allRecords = allRecords.filter(record => record.date !== date);
       }
 
@@ -67,17 +66,17 @@ const TakeAttendanceScreen = ({ navigation }) => {
         JSON.stringify(allRecords)
       );
       
-      Alert.alert('Success', 'Attendance saved successfully!');
+      Alert.alert('SucessO', 'Presenca salva');
       navigation.goBack();
     } catch (e) {
-      console.error('Failed to save attendance', e);
-      Alert.alert('Error', 'Failed to save attendance');
+      console.error('ERROR', e);
+      Alert.alert('Error', 'Salvamento falhou');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Take Attendance - {date}</Text>
+      <Text style={styles.title}>Lista de Presenca {date}</Text>
       
       <ScrollView style={styles.listContainer}>
         {students.map(student => (
@@ -92,7 +91,7 @@ const TakeAttendanceScreen = ({ navigation }) => {
             )}
             right={() => (
               <Text style={attendance[student.id] ? styles.present : styles.absent}>
-                {attendance[student.id] ? 'Present' : 'Absent'}
+                {attendance[student.id] ? 'Presente' : 'Faltou'}
               </Text>
             )}
           />
@@ -102,7 +101,7 @@ const TakeAttendanceScreen = ({ navigation }) => {
       <FAB
         style={styles.fab}
         icon="content-save"
-        label="Save Attendance"
+        label="AKI"
         onPress={saveAttendance}
       />
     </View>

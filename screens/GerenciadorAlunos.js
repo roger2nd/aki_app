@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../scripts/Authenticator';
 
-const ManageStudentsScreen = ({ navigation }) => {
+const ManageStudentsScreen = () => {
   const { user } = useContext(AuthContext);
   const [students, setStudents] = useState([]);
   const [tuitionNumber, setTuitionNumber] = useState('');
@@ -71,10 +71,10 @@ const ManageStudentsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Manage Students</Text>
+      <Text style={styles.title}>Gerenciar Alunos</Text>
       
       <TextInput
-        label="Student Tuition Number"
+        label="Numero de Matricula"
         value={tuitionNumber}
         onChangeText={setTuitionNumber}
         style={styles.input}
@@ -83,7 +83,7 @@ const ManageStudentsScreen = ({ navigation }) => {
       />
       
       <TextInput
-        label="Student Name"
+        label="Nome do Aluno"
         value={studentName}
         onChangeText={setStudentName}
         style={styles.input}
@@ -96,7 +96,7 @@ const ManageStudentsScreen = ({ navigation }) => {
         style={styles.button}
         icon="account-plus"
       >
-        Add Student
+        Adicionar Aluno
       </Button>
 
       <ScrollView style={styles.listContainer}>

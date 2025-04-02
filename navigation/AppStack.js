@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Button } from 'react-native-paper';
 import { AuthContext } from '../scripts/Authenticator';
 import HomeScreen from '../screens/Home';
@@ -11,81 +11,11 @@ import ViewAttendanceScreen from '../screens/VisualizarChamada';
 import ClassroomSetupScreen from '../screens/SalaDeAulaLocation';
 import StudentDashboard from '../screens/AlunosDashboard';
 
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AdminTabs = ({ navigation }) => {
+const AdminTabs = () => {
   const { logout } = useContext(AuthContext);
-  
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button 
-          onPress={logout}
-          icon="logout"
-          color="#6200ee"
-          style={{ marginRight: 10 }}
-        >
-          Logout
-        </Button>
-      ),
-    });
-  }, [navigation]);
-
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#6200ee',
-        headerRight: () => (
-          <Button 
-            onPress={logout}
-            icon="logout"
-            color="#6200ee"
-            style={{ marginRight: 10 }}
-          >
-            Logout
-          </Button>
-        ),
-      }}
-    >
-      <Tab.Screen 
-        name="ManageStudents" 
-        component={ManageStudentsScreen}
-        options={{
-          tabBarLabel: 'Students',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="people" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="TakeAttendance" 
-        component={TakeAttendanceScreen}
-        options={{
-          tabBarLabel: 'Attendance',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="event-available" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="ViewAttendance" 
-        component={ViewAttendanceScreen}
-        options={{
-          tabBarLabel: 'History',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="history" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
-  );
-};
-
-const AppStack = () => {
-  const { user, logout } = useContext(AuthContext);
-
   const screenOptions = {
     headerRight: () => (
       <Button 
@@ -96,49 +26,97 @@ const AppStack = () => {
       >
         Logout
       </Button>
-    ),
-    headerTitleStyle: {
-      fontWeight: 'bold',
-    },
-  };
+    )
+  }
 
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
-    {user?.role === 'admin' ? (
-      user.classroomLocation ? (
-        <Stack.Screen
-          name="AdminMain"
-          component={AdminTabs}
-          options={{ headerShown: false }}
-        />
-      ) : (
-        <Stack.Screen
-          name="ClassroomSetup"
-          component={ClassroomSetupScreen}
-          options={{ 
-            title: 'Setup Classroom',
-            headerRight: () => (
-              <Button 
-                onPress={() => logout()}
-                icon="logout"
-                color="#6200ee"
-                style={{ marginRight: 10 }}
-              >
-                Logout
-              </Button>
-            ),
-          }}
-        />
-      )
-    ) : (
-      <Stack.Screen 
-        name="StudentDashboard" 
-        component={StudentDashboard} 
-        options={{ title: 'Student Dashboard' }}
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'ManageStudents') {
+            iconName = focused ? 'account-group' : 'account-group-outline';
+          } else if (route.name === 'TakeAttendance') {
+            iconName = focused ? 'calendar-check' : 'calendar-check-outline';
+          } else if (route.name === 'ViewAttendance') {
+            iconName = 'history';
+          }
+
+          return <MaterialIcons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#6200ee',
+        tabBarInactiveTintColor: 'gray',
+        screenOptions
+      })}
+    >
+      <Tab.Screen 
+        name="HomeTab" 
+        component={HomeScreen}
+        options={{ title: 'Home' }}
       />
-    )}
-  </Stack.Navigator>
+      <Tab.Screen 
+        name="ManageStudentsTab" 
+        component={ManageStudentsScreen}
+        options={{ title: 'Alunos' }}
+      />
+      <Tab.Screen 
+        name="TakeAttendanceTab" 
+        component={TakeAttendanceScreen}
+        options={{ title: 'Presenca' }}
+      />
+      <Tab.Screen 
+        name="ViewAttendanceTab" 
+        component={ViewAttendanceScreen}
+        options={{ title: 'Historico' }}
+      />
+    </Tab.Navigator>
   );
 };
 
-export default AppStack;
+const MainStack = () => {
+  const { user, logout } = useContext(AuthContext);
+  console.log(user.classroomLocation);
+
+  return (
+    <Stack.Navigator>
+      {user?.role === 'admin' ? (
+        user.classroomLocation ? (
+          <Stack.Screen
+            name="MainApp"
+            component={AdminTabs}
+            options={{ headerShown: false }}
+          />
+        ) : (
+          <Stack.Screen
+            name="ClassroomSetup"
+            component={ClassroomSetupScreen}
+            options={{
+              title: 'Setup Classroom',
+              headerRight: () => (
+                <Button 
+                  onPress={logout}
+                  icon="logout"
+                  color="#6200ee"
+                  style={{ marginRight: 10 }}
+                >
+                  Logout
+                </Button>
+              ),
+            }}
+          />
+        )
+      ) : (
+        <Stack.Screen 
+          name="StudentDashboard" 
+          component={StudentDashboard}
+          options={{ title: 'Dashboard' }}
+        />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default MainStack;
