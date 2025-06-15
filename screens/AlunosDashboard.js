@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Button, Card, Text, ActivityIndicator } from 'react-native-paper';
+import { Button, Card, Text } from 'react-native-paper';
 import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { HeaderButton } from '../components/HeaderButton';
 
 const StudentDashboard = ({ navigation }) => {
   const { user, logout, classroomLocation, geofenceRadius } = useContext(AuthContext);
@@ -12,18 +13,13 @@ const StudentDashboard = ({ navigation }) => {
   const [lastAttendance, setLastAttendance] = useState(null);
   const [isInClassroom, setIsInClassroom] = useState(false);
 
-  // Set header options
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button 
-          onPress={logout}
-          icon="logout"
-          color="#6200ee"
-          style={{ marginRight: 10 }}
-        >
-          Logout
-        </Button>
+        <HeaderButton 
+          iconName="logout" 
+          onPress={logout} 
+        />
       ),
     });
   }, [navigation]);
@@ -37,7 +33,7 @@ const StudentDashboard = ({ navigation }) => {
       const attendance = await AsyncStorage.getItem(`lastAttendance_${user.tuitionNumber}`);
       if (attendance) setLastAttendance(JSON.parse(attendance));
     } catch (e) {
-      console.error('Failed to load attendance', e);
+      console.error('Falha no carregamento', e);
     }
   };
 
@@ -46,14 +42,14 @@ const StudentDashboard = ({ navigation }) => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission denied', 'Location permission is required');
+        Alert.alert('Permission denied', 'Permissao de geolocalizacao necessaria');
         return false;
       }
 
       let location = await Location.getCurrentPositionAsync({});
       return location.coords;
     } catch (error) {
-      Alert.alert('Error', 'Failed to get location');
+      Alert.alert('Error', 'Falha em geolocalizar');
       return false;
     } finally {
       setIsCheckingLocation(false);
@@ -61,7 +57,7 @@ const StudentDashboard = ({ navigation }) => {
   };
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    // Haversine formula to calculate distance between two coordinates
+    // Formula de Haversine calculas distance entre duas coordenadas
     const R = 6371e3; // meters
     const φ1 = lat1 * Math.PI/180;
     const φ2 = lat2 * Math.PI/180;
@@ -73,12 +69,12 @@ const StudentDashboard = ({ navigation }) => {
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return R * c; // distance in meters
+    return R * c; // metros
   };
 
   const markAttendance = async () => {
     if (!classroomLocation) {
-      Alert.alert('Error', 'Classroom location not set by admin');
+      Alert.alert('Error', 'A localixao da classe nao foi configurada pelo professor');
       return;
     }
 
@@ -101,7 +97,7 @@ const StudentDashboard = ({ navigation }) => {
         timestamp: new Date().getTime(),
         location: coords,
         distance: distance.toFixed(2),
-        status: 'present'
+        status: 'presente'
       };
 
       try {
@@ -110,14 +106,14 @@ const StudentDashboard = ({ navigation }) => {
           JSON.stringify(attendanceRecord)
         );
         setLastAttendance(attendanceRecord);
-        Alert.alert('Success', 'Attendance marked successfully!');
+        Alert.alert('Success', 'Presenca confirmada!');
       } catch (e) {
-        Alert.alert('Error', 'Failed to save attendance');
+        Alert.alert('Error', 'Registro de presenca falhou');
       }
     } else {
       Alert.alert(
-        'Not in Classroom', 
-        `You're ${distance.toFixed(2)}m away from classroom (max ${geofenceRadius}m)`
+        'Nao esta em sala', 
+        `Voce esta ${distance.toFixed(2)}m de distancia do delta (max ${geofenceRadius}m)`
       );
     }
   };

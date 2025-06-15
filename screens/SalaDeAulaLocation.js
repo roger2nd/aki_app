@@ -4,21 +4,33 @@ import { Button, Text, TextInput } from 'react-native-paper';
 import * as Location from 'expo-location';
 import { AuthContext } from '../scripts/Authenticator';
 import { MaterialIcons } from '@expo/vector-icons';
-import { ROUTES } from '../routes';
+import { ROUTES } from '../constants/routes';
+import { HeaderButton } from '../components/HeaderButton';
 //import { useNavigation } from '@react-navigation/native';
 
 const ClassroomSetupScreen = ({ navigation }) => {
-  const { saveClassroomSettings } = useContext(AuthContext);
+  const { saveClassroomSettings, logout } = useContext(AuthContext);
   //const navigation = useNavigation();
   const [radius, setRadius] = useState('50');
   const [isLoading, setIsLoading] = useState(false);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButton 
+          iconName="logout" 
+          onPress={logout} 
+        />
+      ),
+    });
+  }, [navigation]);
 
   const getCurrentLocation = async () => {
     setIsLoading(true);
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission denied', 'Location permission is required');
+        Alert.alert('Permissao negada', 'Fornece permissao a localizacao');
         return null;
       }
 
@@ -28,7 +40,7 @@ const ClassroomSetupScreen = ({ navigation }) => {
         longitude: location.coords.longitude
       };
     } catch (error) {
-      Alert.alert('Error', 'Falha em capturar a localizacao');
+      Alert.alert('Error', 'Falha em salvar a localizacao');
       return null;
     } finally {
       setIsLoading(false);

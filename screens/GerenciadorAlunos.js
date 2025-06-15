@@ -4,12 +4,25 @@ import { Card, TextInput, Button, Text, List } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../scripts/Authenticator';
+import { HeaderButton } from '../components/HeaderButton';
 
-const ManageStudentsScreen = () => {
+const ManageStudentsScreen = ({navigation}) => {
   const { user } = useContext(AuthContext);
   const [students, setStudents] = useState([]);
   const [tuitionNumber, setTuitionNumber] = useState('');
   const [studentName, setStudentName] = useState('');
+  const { logout } = useContext(AuthContext);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButton 
+          iconName="logout" 
+          onPress={logout} 
+        />
+      ),
+    });
+  }, [navigation]);
 
   useEffect(() => {
     loadStudents();
@@ -20,7 +33,7 @@ const ManageStudentsScreen = () => {
       const savedStudents = await AsyncStorage.getItem(`students_${user.tuitionNumber}`);
       if (savedStudents) setStudents(JSON.parse(savedStudents));
     } catch (e) {
-      Alert.alert('Error', 'Failed to load students');
+      Alert.alert('Error', 'Carregamento Falhou!');
     }
   };
 
@@ -32,13 +45,13 @@ const ManageStudentsScreen = () => {
       );
       setStudents(studentsList);
     } catch (e) {
-      Alert.alert('Error', 'Failed to save students');
+      Alert.alert('Error', 'Salvamento falhou!');
     }
   };
 
   const addStudent = () => {
     if (!tuitionNumber || !studentName) {
-      Alert.alert('Error', 'Please enter both tuition number and name');
+      Alert.alert('Error', 'Por favor preencha todos os campos');
       return;
     }
 
@@ -46,7 +59,7 @@ const ManageStudentsScreen = () => {
       id: Date.now().toString(),
       tuitionNumber,
       name: studentName,
-      class: 'Default Class' // You can add a class selector
+      class: 'Programacao Mobile'
     };
 
     const updatedStudents = [...students, newStudent];
@@ -57,8 +70,8 @@ const ManageStudentsScreen = () => {
 
   const deleteStudent = (id) => {
     Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this student?',
+      'Confirmar Remocao',
+      'Voce tem certeza que quer remover esse aluno?',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', onPress: () => {
@@ -118,7 +131,7 @@ const ManageStudentsScreen = () => {
                 icon="delete"
                 onPress={() => deleteStudent(student.id)}
               >
-                Remove
+                Remover
               </Button>
             )}
           />

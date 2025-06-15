@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Button, Card, Title, Appbar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
-import { ROUTES } from '../routes';
+import { ROUTES } from '../constants/routes';
 
 const HomeScreen = ({ navigation }) => {
   const { logout } = useContext(AuthContext);
@@ -42,6 +42,14 @@ const HomeScreen = ({ navigation }) => {
             icon="history"
           >
             Historico
+          </Button>
+          <Button 
+            mode="contained" 
+            onPress={() => navigation.navigate(ROUTES.SALA_SETUP)}
+            style={styles.button}
+            icon="map-marker"
+          >
+            Configurar Sala
           </Button>
           <Button 
             mode="outlined" 

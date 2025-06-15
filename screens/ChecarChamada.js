@@ -4,12 +4,24 @@ import { List, Checkbox, Text, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
+import { HeaderButton } from '../components/HeaderButton';
 
 const TakeAttendanceScreen = ({ navigation }) => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+
+  React.useLayoutEffect(() => {
+      navigation.setOptions({
+        headerRight: () => (
+          <HeaderButton 
+            iconName="logout" 
+            onPress={logout} 
+          />
+        ),
+      });
+    }, [navigation]);
 
   useEffect(() => {
     loadStudents();

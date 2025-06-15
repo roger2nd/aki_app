@@ -4,11 +4,24 @@ import { Card, Text, Button, List } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
+import { HeaderButton } from '../components/HeaderButton';
 
 const ViewAttendanceScreen = ({ navigation }) => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButton 
+          iconName="logout" 
+          onPress={logout} 
+        />
+      ),
+    });
+  }, [navigation]);
+  
 
   useEffect(() => {
     loadAttendance();

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { ROUTES } from '../routes';
+import { ROUTES } from '../constants/routes';
 
 const AuthForm = ({
   tuitionNumber,
@@ -67,7 +67,7 @@ const AuthForm = ({
       {/* Role Selection (only for registration) */}
       {!isLogin && (
         <>
-          <Text style={styles.sectionTitle}>Register as:</Text>
+          <Text style={styles.sectionTitle}>Registra como:</Text>
           <RadioButton.Group onValueChange={setRole} value={role}>
             <View style={styles.radioOption}>
               <RadioButton value="student" />

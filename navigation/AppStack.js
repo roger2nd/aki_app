@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Pressable} from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Button } from 'react-native-paper';
 import { AuthContext } from '../scripts/Authenticator';
@@ -11,21 +12,16 @@ import ViewAttendanceScreen from '../screens/VisualizarChamada';
 import ClassroomSetupScreen from '../screens/SalaDeAulaLocation';
 import StudentDashboard from '../screens/AlunosDashboard';
 
-const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const AdminTabs = () => {
   const { logout } = useContext(AuthContext);
   const screenOptions = {
     headerRight: () => (
-      <Button 
-        onPress={logout}
-        icon="logout"
-        color="#6200ee"
-        style={{ marginRight: 10 }}
-      >
-        Logout
-      </Button>
+      <Pressable onPress={() => logout()} style={{ marginRight: 16 }}>
+        <MaterialIcons name="logout" size={24} color="#6200ee" />
+      </Pressable>
     )
   }
 
@@ -81,41 +77,32 @@ const MainStack = () => {
   console.log(user.classroomLocation);
 
   return (
-    <Stack.Navigator>
+    <NativeStack.Navigator>
       {user?.role === 'admin' ? (
         user.classroomLocation ? (
-          <Stack.Screen
+          <NativeStack.Screen
             name="MainApp"
             component={AdminTabs}
             options={{ headerShown: false }}
           />
         ) : (
-          <Stack.Screen
+          <NativeStack.Screen
             name="ClassroomSetup"
             component={ClassroomSetupScreen}
             options={{
-              title: 'Setup Classroom',
-              headerRight: () => (
-                <Button 
-                  onPress={logout}
-                  icon="logout"
-                  color="#6200ee"
-                  style={{ marginRight: 10 }}
-                >
-                  Logout
-                </Button>
-              ),
+              title: 'Setup Classroom'
             }}
           />
         )
       ) : (
-        <Stack.Screen 
+        <NativeStack.Screen 
           name="StudentDashboard" 
           component={StudentDashboard}
-          options={{ title: 'Dashboard' }}
+          options={{ title: 'Dashboard'
+          }}   
         />
       )}
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
