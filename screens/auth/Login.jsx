@@ -61,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
             style={styles.testAccountButton}
             icon="account-tie"
           >
-            Login como Admin
+            Login como Professor
           </Button>
           
           <Button 

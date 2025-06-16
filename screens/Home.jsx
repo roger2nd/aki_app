@@ -1,12 +1,12 @@
 import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Button, Card, Title, Appbar } from 'react-native-paper';
+import { Button, Card, Title } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
 import { ROUTES } from '../constants/routes';
 
 const HomeScreen = ({ navigation }) => {
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   return (
     <View style={styles.container}>
@@ -19,45 +19,56 @@ const HomeScreen = ({ navigation }) => {
             color="#6200ee" 
             style={styles.icon}
           />
+          
+          {/* Classroom Management Section */}
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate(ROUTES.GERENCIADOR_ALUNOS)}
+            onPress={() => navigation.navigate(ROUTES.CLASS_CONFIG)}
+            style={styles.button}
+            icon="account-group"
+          >
+            Gerenciar Turmas
+          </Button>
+
+          {/* Student Management */}
+          <Button 
+            mode="contained" 
+            onPress={() => navigation.navigate(ROUTES.ALUNOS_TAB)}
             style={styles.button}
             icon="account-multiple"
           >
             Gerenciar Alunos
           </Button>
+
+          {/* Attendance Actions */}
           <Button 
             mode="contained" 
             onPress={() => navigation.navigate(ROUTES.CHECAR_PRESENCA)}
             style={styles.button}
             icon="calendar-check"
           >
-            Presenca
+            Registrar Presença
           </Button>
+
+          {/* Attendance History */}
           <Button 
             mode="contained" 
             onPress={() => navigation.navigate(ROUTES.HISTORICO_PRESENCA)}
             style={styles.button}
             icon="history"
           >
-            Historico
+            Histórico de Presenças
           </Button>
-          <Button 
-            mode="contained" 
-            onPress={() => navigation.navigate(ROUTES.SALA_SETUP)}
-            style={styles.button}
-            icon="map-marker"
-          >
-            Configurar Sala
-          </Button>
+
+          {/* Logout */}
           <Button 
             mode="outlined" 
             onPress={logout}
             style={styles.logoutButton}
             icon="logout"
+            labelStyle={{ color: '#6200ee' }}
           >
-            Logout
+            Sair
           </Button>
         </Card.Content>
       </Card>
@@ -69,23 +80,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   card: {
     padding: 20,
+    borderRadius: 10,
+    elevation: 3,
   },
   title: {
     textAlign: 'center',
     marginBottom: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   icon: {
     alignSelf: 'center',
     marginBottom: 30,
   },
   button: {
-    marginVertical: 10,
+    marginVertical: 8,
+    paddingVertical: 8,
+    backgroundColor: '#6200ee',
   },
   logoutButton: {
     marginTop: 20,
+    borderColor: '#6200ee',
   },
 });
 

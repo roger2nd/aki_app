@@ -75,7 +75,7 @@ const AuthForm = ({
             </View>
             <View style={styles.radioOption}>
               <RadioButton value="admin" />
-              <Text>Admin</Text>
+              <Text>Professor</Text>
             </View>
           </RadioButton.Group>
         </>
