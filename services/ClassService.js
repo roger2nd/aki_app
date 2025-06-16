@@ -54,5 +54,19 @@ export default {
         const classes = JSON.parse(await AsyncStorage.getItem(CLASSES_KEY)) || [];
         const foundClass = classes.find(c => c.id === classId);
         return foundClass?.students || [];
+    },
+
+    async getClass(classId) {
+        const classes = JSON.parse(await AsyncStorage.getItem(CLASSES_KEY)) || [];
+        const foundClass = classes.find(c => c.id === classId);
+        if (!foundClass) {
+            throw new Error('Turma não encontrada');
+        }
+        return foundClass;
+    },
+
+    async getClassName(classId) {
+        const classData = await this.getClass(classId);
+        return classData.name;
     }
 };

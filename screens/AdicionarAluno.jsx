@@ -28,8 +28,10 @@ const AddStudentScreen = ({ navigation, route }) => {
 
             if (updatedClass) {
                 Alert.alert('Sucesso', 'Aluno adicionado com sucesso!');
+                const className = await ClassService.getClassName(classId);
                 navigation.navigate(ROUTES.GERENCIADOR_ALUNOS, { 
                 classId,
+                className,
                 refresh: Date.now() 
                 });
             }
