@@ -24,6 +24,37 @@ export default {
     return classData;
     },
 
+    async deleteClass(classId) {
+        try {
+            // All Classes
+            const classes = JSON.parse(await AsyncStorage.getItem(CLASSES_KEY)) || [];
+            
+            // Check classe para deletar
+            const classToDelete = classes.find(c => c.id === classId);
+            if (!classToDelete) return false;
+            
+            // Filtra
+            const updatedClasses = classes.filter(c => c.id !== classId);
+            
+            await AsyncStorage.setItem(CLASSES_KEY, JSON.stringify(updatedClasses));
+            
+            // Remove todas as lista de presencas para essa classe
+            const teachers = await AsyncStorage.getAllKeys();
+            const attendanceKeys = teachers.filter(key => key.startsWith('attendance_'));
+            
+            for (const key of attendanceKeys) {
+                const records = JSON.parse(await AsyncStorage.getItem(key)) || [];
+                const updatedRecords = records.filter(r => r.classId !== classId);
+                await AsyncStorage.setItem(key, JSON.stringify(updatedRecords));
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error deleting class:', error);
+            throw error;
+        }
+    },
+
     async addStudentToClass(classId, studentData) {
         try {
             const classes = JSON.parse(await AsyncStorage.getItem(CLASSES_KEY)) || [];

@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Alert, ScrollView, FlatList } from 'react-native';
 import { Button, TextInput, Text, Card, Title, Divider, List } from 'react-native-paper';
 import * as Location from 'expo-location';
-import QRCode from 'react-native-qrcode-svg';
 import { AuthContext } from '../scripts/Authenticator';
 import ClassService from '../services/ClassService';
 import { ROUTES } from '../constants/routes';
@@ -14,7 +13,6 @@ const ClassroomConfigScreen = ({ navigation }) => {
   const [className, setClassName] = useState('');
   const [radius, setRadius] = useState('10');
   const [isLoading, setIsLoading] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     ////////////// DEBUG/////////////
@@ -27,104 +25,156 @@ const ClassroomConfigScreen = ({ navigation }) => {
       }
     };
     testService();
-  /////////////////////////////////////
+    /////////////////////////////////////
     const unsubscribe = navigation.addListener('focus', () => {
       loadClasses();
     });
     return unsubscribe;
     }, []);
 
-  const loadClasses = async () => {
-    try {
-      const allClasses = await ClassService.getClasses(user.tuitionNumber);
-      setClasses(allClasses);
-      if (allClasses.length > 0 && !currentClass) {
-        setCurrentClass(allClasses[0]);
-        setClassName(allClasses[0].name);
-        setRadius(allClasses[0].geofenceRadius?.toString() || '10');
+    const loadClasses = async () => {
+      try {
+        const allClasses = await ClassService.getClasses(user.tuitionNumber);
+        setClasses(allClasses);
+        if (allClasses.length > 0 && !currentClass) {
+          setCurrentClass(allClasses[0]);
+          setClassName(allClasses[0].name);
+          setRadius(allClasses[0].geofenceRadius?.toString() || '10');
+        }
+      } catch (error) {
+        console.error('Error loading classes:', error);
+        Alert.alert('Erro', 'Falha ao carregar turmas: ' + error.message);
       }
-    } catch (error) {
-      console.error('Error loading classes:', error);
-      Alert.alert('Erro', 'Falha ao carregar turmas: ' + error.message);
-    }
-  };
+    };
 
-  const handleCreateClass = () => {
-    setCurrentClass({
-      id: Date.now().toString(),
-      name: '',
-      teacherId: user.tuitionNumber,
-      geofenceRadius: 10,
-      location: null,
-      students: [],
-      createdAt: new Date().toISOString()
-    });
-    setClassName('');
-    setRadius('10');
-  };
+    const handleCreateClass = () => {
+      setCurrentClass({
+        id: Date.now().toString(),
+        name: '',
+        teacherId: user.tuitionNumber,
+        geofenceRadius: 10,
+        location: null,
+        students: [],
+        createdAt: new Date().toISOString()
+      });
+      setClassName('');
+      setRadius('10');
+    };
 
-  const handleSaveClass = async () => {
-  if (!className) {
-    Alert.alert('Erro', 'Informe o nome da turma');
-    return;
-  }
-
-  setIsLoading(true);
-    try {
-      const classData = {
-        ...currentClass,
-        name: className,
-        geofenceRadius: parseInt(radius) || 10
-      };
-      
-      const savedClass = await ClassService.saveClass(classData);
-      console.log('Saved class:', savedClass); // Debug log
-      
-      // Update local state with the saved class
-      setCurrentClass(savedClass);
-      await loadClasses();
-      Alert.alert('Sucesso', 'Turma salva com sucesso!');
-    } catch (error) {
-      console.error('Error saving class:', error);
-      Alert.alert('Erro', 'Falha ao salvar turma: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSetLocation = async () => {
-    setIsLoading(true);
-    try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Permita acesso à localização');
+    const handleSaveClass = async () => {
+      if (!className) {
+        Alert.alert('Erro', 'Informe o nome da turma');
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      const updatedClass = {
-        ...currentClass,
-        location: {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude
-        }
-      };
-      setCurrentClass(updatedClass);
-      Alert.alert('Sucesso', 'Localização definida!');
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao obter localização');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      setIsLoading(true);
+      
+      try {
+        const classData = {
+          ...currentClass,
+          name: className,
+          geofenceRadius: parseInt(radius) || 10
+        };
+        
+        const savedClass = await ClassService.saveClass(classData);
+        console.log('Saved class:', savedClass); // Debug log
+        
+        setCurrentClass(savedClass);
+        await loadClasses();
+        Alert.alert('Sucesso', 'Turma salva com sucesso!');
+      } catch (error) {
+        console.error('Error saving class:', error);
+        Alert.alert('Erro', 'Falha ao salvar turma: ' + error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const navigateToAddStudent = () => {
-    if (!currentClass?.id) {
-      Alert.alert('Erro', 'Selecione uma turma primeiro');
-      return;
-    }
-    navigation.navigate(ROUTES.ADICIONAR_ALUNO, { classId: currentClass.id });
-  };
+    const handleDeleteClass = async () => {
+      if (!currentClass?.id) {
+        Alert.alert('Erro', 'Nenhuma turma selecionada');
+        return;
+      }
+
+      Alert.alert(
+        'Confirmar Exclusão',
+        `Tem certeza que deseja excluir permanentemente:\n\n` +
+        `• Turma: ${currentClass.name}\n` +
+        `• ${currentClass.students?.length || 0} alunos\n` +
+        `• Todos os registros de presença associados`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setIsLoading(true);
+                
+                // Use ClassService for deletion
+                await ClassService.deleteClass(currentClass.id);
+                
+                // Update local state
+                const updatedClasses = await ClassService.getClasses(user.tuitionNumber);
+                setClasses(updatedClasses);
+                
+                // Reset form if deleted class was being edited
+                if (currentClass.id === currentClass?.id) {
+                  setCurrentClass(null);
+                  setClassName('');
+                  setRadius('10');
+                }
+                
+                Alert.alert('Sucesso', 'Turma e todos os dados relacionados foram excluídos!');
+              } catch (error) {
+                console.error('Error deleting class:', error);
+                Alert.alert('Erro', 'Falha ao excluir turma e seus dados');
+              } finally {
+                setIsLoading(false);
+              }
+            },
+          },
+        ]
+      );
+    };
+
+    const handleSetLocation = async () => {
+      setIsLoading(true);
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permissão negada', 'Permita acesso à localização');
+          return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        const updatedClass = {
+          ...currentClass,
+          location: {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          }
+        };
+        setCurrentClass(updatedClass);
+        Alert.alert('Sucesso', 'Localização definida!');
+      } catch (error) {
+        Alert.alert('Erro', 'Falha ao obter localização');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const isNewUnsavedClass = () => {
+      return currentClass && !classes.some(c => c.id === currentClass.id);
+    };
+
+    const navigateToAddStudent = () => {
+      if (!currentClass?.id) {
+        Alert.alert('Erro', 'Selecione uma turma primeiro');
+        return;
+      }
+      navigation.navigate(ROUTES.ADICIONAR_ALUNO, { classId: currentClass.id });
+    };
 
   return (
     <ScrollView style={styles.container}>
@@ -204,40 +254,6 @@ const ClassroomConfigScreen = ({ navigation }) => {
                 {currentClass.location ? 'Atualizar Localização' : 'Definir Localização'}
               </Button>
 
-              {currentClass.location && (
-                <>
-                  <Text style={styles.coordinates}>
-                    Lat: {currentClass.location.latitude.toFixed(6)}
-                    {'\n'}
-                    Long: {currentClass.location.longitude.toFixed(6)}
-                  </Text>
-
-                  <Button
-                    mode="outlined"
-                    onPress={() => setShowQRCode(!showQRCode)}
-                    style={styles.button}
-                    icon="qrcode"
-                  >
-                    {showQRCode ? 'Ocultar QR' : 'Mostrar QR'}
-                  </Button>
-
-                  {showQRCode && (
-                    <View style={styles.qrContainer}>
-                      <QRCode
-                        value={JSON.stringify({
-                          classId: currentClass.id,
-                          location: currentClass.location,
-                          radius: currentClass.geofenceRadius
-                        })}
-                        size={200}
-                        color="#6200ee"  // Set QR code color to match app theme
-                        backgroundColor="white"  // Set background to white for better contrast
-                      />
-                    </View>
-                  )}
-                </>
-              )}
-
               <Button
                 mode="contained"
                 onPress={handleSaveClass}
@@ -251,8 +267,20 @@ const ClassroomConfigScreen = ({ navigation }) => {
 
               <Button
                 mode="contained"
+                onPress={handleDeleteClass}
+                loading={isLoading}
+                disabled={isLoading || isNewUnsavedClass()}
+                style={[styles.button, styles.deleteButton]}
+                icon="delete"
+                textColor="#fff"
+              >
+                Excluir Turma
+              </Button>
+
+              <Button
+                mode="contained"
                 onPress={navigateToAddStudent}
-                disabled={!currentClass?.id}
+                disabled={!currentClass?.id || isNewUnsavedClass()}
                 style={styles.button}
                 icon="account-plus"
               >
