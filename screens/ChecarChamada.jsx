@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { List, Checkbox, Text, FAB, Searchbar, Button, Menu, Divider, Snackbar } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { List, Checkbox, Text, FAB, Searchbar, Button, Snackbar } from 'react-native-paper';
 import { AuthContext } from '../scripts/Authenticator';
-import { HeaderButton } from '../components/HeaderButton';
 import ClassService from '../services/ClassService';
 import { DatePickerModal } from 'react-native-paper-dates';
 import registerDatePickerTranslations from '../utils/datePickerTranslation';
@@ -14,7 +12,7 @@ import { exportToCSV } from '../utils/csvExport';
 registerDatePickerTranslations();
 
 const TakeAttendanceScreen = ({ navigation, route }) => {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -27,12 +25,12 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
   const [location, setLocation] = useState(null);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Get current date in UTC-3 (Brazil time)
+  // Get current date in UTC-3 (Brazil)
   const getCurrentBrasilDate = () => {
     const now = new Date();
-    // UTC-3 adjustment (3 hours ahead of UTC)
-    now.setHours(now.getHours() - 3);
+    now.setHours(now.getHours() - 3); // UTC-3 adjustment
     return now;
   };
 
@@ -44,24 +42,23 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
 
   const [date, setDate] = useState(getCurrentBrasilDate());
 
-  // Check if selected date is today
   const isToday = () => {
     const selectedDate = new Date(date);
     selectedDate.setHours(0, 0, 0, 0);
     return selectedDate.getTime() === today.getTime();
   };
 
-  // Format date to Brazilian format
   const formatDate = (date) => {
     return date.toLocaleDateString('pt-BR');
   };
 
-  // Load classes and initial data
   useEffect(() => {
-    loadClasses();
+    const unsubscribe = navigation.addListener('focus', () => {
+        loadClasses();
+      });
+      return unsubscribe;
   }, []);
 
-  // Load students when class or date changes
   useEffect(() => {
     if (selectedClass) {
       loadStudents();
@@ -70,6 +67,7 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
 
   const loadClasses = async () => {
     try {
+      setIsLoading(true);
       const classesData = await ClassService.getClasses(user.tuitionNumber);
       setClasses(classesData);
       if (classesData.length > 0 && !selectedClass) {
@@ -77,34 +75,39 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
       }
     } catch (e) {
       console.error('Failed to load classes', e);
+      showSnackbar('Falha ao carregar turmas');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadStudents = async () => {
     try {
+      setIsLoading(true);
       const classData = await ClassService.getClass(selectedClass);
       const studentsList = classData.students || [];
       
       const formattedDate = date.toISOString().split('T')[0];
-      const existingRecords = await AsyncStorage.getItem(`attendance_${user.tuitionNumber}`);
+      const attendanceRecords = await ClassService.getAttendanceRecords(user.tuitionNumber);
+      
       let attendanceData = {};
       
-      if (existingRecords) {
-        const allRecords = JSON.parse(existingRecords);
-        const dateRecords = allRecords.find(r => r.date === formattedDate && r.classId === selectedClass);
-        
-        if (dateRecords) {
-          dateRecords.records.forEach(record => {
-            attendanceData[record.studentId] = record.present;
-          });
-        }
+      // Find records for this specific class and date
+      const dateRecords = attendanceRecords.find(r => 
+        r.date === formattedDate && r.classId === selectedClass
+      );
+      
+      if (dateRecords) {
+        dateRecords.records.forEach(record => {
+          attendanceData[record.studentId] = record.present;
+        });
       }
       
-      // Initialize attendance for students without records (only for today)
-      if (isToday) {
+      // Initialize attendance for today's date
+      if (isToday()) {
         studentsList.forEach(student => {
           if (attendanceData[student.id] === undefined) {
-            attendanceData[student.id] = false; // Default to absent
+            attendanceData[student.id] = false;
           }
         });
       }
@@ -113,11 +116,14 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
       setAttendance(attendanceData);
     } catch (e) {
       console.error('Failed to load students', e);
+      showSnackbar('Falha ao carregar alunos');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const toggleAttendance = (studentId) => {
-    if (!isToday) return; // Only allow changes for today
+    /* if (!isToday()) return; */
     
     setAttendance(prev => ({
       ...prev,
@@ -127,7 +133,9 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
 
   const saveAttendance = async () => {
     try {
-      /* const formattedDate = date.toISOString().split('T')[0];
+      setIsLoading(true);
+      const formattedDate = date.toISOString().split('T')[0];
+      
       const attendanceRecord = {
         date: formattedDate,
         classId: selectedClass,
@@ -140,31 +148,20 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
           present: attendance[student.id] || false
         }))
       };
-
-      const existingRecords = await AsyncStorage.getItem(`attendance_${user.tuitionNumber}`);
-      let allRecords = [];
-      if (existingRecords) {
-        allRecords = JSON.parse(existingRecords);
-        allRecords = allRecords.filter(r => !(r.date === formattedDate && r.classId === selectedClass));
-      }
-
-      allRecords.push(attendanceRecord);
-      await AsyncStorage.setItem(
-        `attendance_${user.tuitionNumber}`,
-        JSON.stringify(allRecords)
-      ); */
       
-      setSnackbarMessage('Presença salva com sucesso');
-      setSnackbarVisible(true);
+      await ClassService.saveAttendanceRecord(attendanceRecord);
+      showSnackbar('Presença salva com sucesso');
     } catch (e) {
       console.error('Error saving attendance', e);
-      setSnackbarMessage('Falha ao salvar presença');
-      setSnackbarVisible(true);
+      showSnackbar('Falha ao salvar presença');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const exportAttendance = async () => {
     try {
+      setIsLoading(true);
       const formattedDate = date.toISOString().split('T')[0];
       const className = classes.find(c => c.id === selectedClass)?.name;
       
@@ -178,18 +175,18 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
 
       const filename = `presenca_${className}_${formattedDate}.csv`.replace(/ /g, '_');
       await exportToCSV(csvData, filename);
-      
-      setSnackbarMessage('Dados exportados com sucesso');
-      setSnackbarVisible(true);
+      showSnackbar('Dados exportados com sucesso');
     } catch (error) {
       console.error('Export error:', error);
-      setSnackbarMessage('Falha ao exportar dados');
-      setSnackbarVisible(true);
+      showSnackbar('Falha ao exportar dados');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const generateQRCode = async () => {
     try {
+      setIsLoading(true);
       const location = await getCurrentLocation();
       setLocation(location);
       
@@ -203,9 +200,15 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
       setQrCodeVisible(true);
     } catch (error) {
       console.error('Error generating QR code:', error);
-      setSnackbarMessage('Falha ao obter localização');
-      setSnackbarVisible(true);
+      showSnackbar('Falha ao obter localização');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const showSnackbar = (message) => {
+    setSnackbarMessage(message);
+    setSnackbarVisible(true);
   };
 
   const onDismissSingle = () => {
@@ -219,8 +222,16 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (student.tuitionNumber || '').includes(searchQuery)
+    (student.matricula || '').includes(searchQuery)
   );
+  
+  if (isLoading && !menuVisible) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -244,7 +255,7 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
           label="Selecione a data"
           saveLabel="Confirmar"
           validRange={{
-            endDate: today // Disable future dates
+            endDate: today
           }}
         />
 
@@ -278,12 +289,12 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
           filteredStudents.map(student => (
             <List.Item
               key={student.id}
-              title={`${student.name} (${student.tuitionNumber})`}
+              title={`${student.name} (${student.tuitionNumber || student.matricula})`} // TODO: Workaround. Em algum ponto do codigo foi trocado tuitionNumber por matricula 
               left={() => (
                 <Checkbox
                   status={attendance[student.id] ? 'checked' : 'unchecked'}
                   onPress={() => toggleAttendance(student.id)}
-                  disabled={!isToday}
+                  /* disabled={!isToday()} */
                 />
               )}
               right={() => (
@@ -300,7 +311,6 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
         )}
       </ScrollView>
 
-      {/* QR Code Modal */}
       {qrCodeVisible && (
         <View style={styles.qrCodeContainer}>
           <View style={styles.qrCodeContent}>
@@ -330,33 +340,32 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
       <FAB.Group
         open={menuVisible}
         visible={!!selectedClass}
-        icon={menuVisible ? 'close' : 'plus'}
+        icon={menuVisible ? 'close' : isLoading ? 'loading' : 'plus'}
         actions={[
-          isToday() && {
+          {
             icon: 'checkbox-multiple-marked',
-            label: 'Marcar Presença',
+            label: 'Todos AKI',
             onPress: () => {
               const newAttendance = {};
               students.forEach(student => {
                 newAttendance[student.id] = true;
               });
               setAttendance(newAttendance);
-              setSnackbarMessage('Todos marcados como presentes');
-              setSnackbarVisible(true);
+              showSnackbar('Todos marcados como presentes');
             },
           },
           isToday() && {
             icon: 'qrcode',
-            label: 'Gerar QR Code',
+            label: 'AKI QR Code',
             onPress: generateQRCode,
           },
-          isToday() && {
+          {
             icon: 'content-save',
             label: 'Salvar Presença',
             onPress: saveAttendance,
           },
           {
-            icon: 'download', // Make sure this icon is imported
+            icon: 'download',
             label: 'Exportar CSV',
             onPress: exportAttendance,
           },
@@ -385,6 +394,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -421,12 +435,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#6200ee',
-  },
-  customFabMenu: {
-    position: 'absolute',
-    right: 16,
-    bottom: 80,
-    alignItems: 'flex-end',
   },
   present: {
     color: 'green',

@@ -181,7 +181,7 @@ const ManageClassStudents = ({ route, navigation }) => {
                 {filteredStudents.map(student => (
                     <List.Item
                         key={student.id}
-                        title={`${student.name} (${student.matricula})`}
+                        title={`${student.name} (${student.matricula || student.tuitionNumber})`}
                         description={`Adicionado em: ${new Date(student.createdAt).toLocaleDateString()}`}
                         left={() => (
                             <MaterialIcons 

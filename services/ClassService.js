@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CLASSES_KEY = 'teacher_classes';
+const ATTENDANCE_KEY = 'teacher_attendance';
 
 export default {
     async getClasses(teacherId) {
@@ -99,5 +100,60 @@ export default {
     async getClassName(classId) {
         const classData = await this.getClass(classId);
         return classData.name;
+    },
+
+    async getAttendanceRecords(teacherId) {
+        try {
+            const records = await AsyncStorage.getItem(`${ATTENDANCE_KEY}_${teacherId}`);
+            return records ? JSON.parse(records) : [];
+        } catch (error) {
+            console.error('Error getting attendance records:', error);
+        throw error;
+        }
+    },
+
+    async saveAttendanceRecord(record) {
+        try {
+        const existingRecords = await this.getAttendanceRecords(record.teacherTuition);
+        const updatedRecords = existingRecords.filter(r => 
+            !(r.date === record.date && r.classId === record.classId)
+        );
+        updatedRecords.push(record);
+        await AsyncStorage.setItem(
+            `${ATTENDANCE_KEY}_${record.teacherTuition}`,
+            JSON.stringify(updatedRecords)
+        );
+        return record;
+        } catch (error) {
+        console.error('Error saving attendance:', error);
+        throw error;
+        }
+    },
+
+    async deleteAttendanceRecord(teacherId, date, classId) {
+        try {
+        const existingRecords = await this.getAttendanceRecords(teacherId);
+        const updatedRecords = existingRecords.filter(r => 
+            !(r.date === date && (!classId || r.classId === classId))
+        );
+        await AsyncStorage.setItem(
+            `${ATTENDANCE_KEY}_${teacherId}`,
+            JSON.stringify(updatedRecords)
+        );
+        return true;
+        } catch (error) {
+            console.error('Error deleting attendance:', error);
+        throw error;
+        }
+    },
+
+    async getClassAttendance(classId) {
+        try {
+        const allRecords = await this.getAttendanceRecords();
+        return allRecords.filter(r => r.classId === classId);
+        } catch (error) {
+        console.error('Error getting class attendance:', error);
+        throw error;
+        }
     }
 };
