@@ -1,5 +1,5 @@
 import { Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export const HeaderButton = ({ 
     iconName, 
@@ -21,7 +21,7 @@ export const HeaderButton = ({
             {isLoading ? (
             <ActivityIndicator color={color} size={size} />
             ) : (
-            <MaterialIcons name={iconName} size={size} color={color} />
+            <MaterialCommunityIcons name={iconName} size={size} color={color} />
             )}
         </Pressable>
 );

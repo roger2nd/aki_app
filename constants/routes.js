@@ -10,5 +10,6 @@ export const ROUTES = {
     HISTORICO_PRESENCA: 'ViewAttendanceTab',
     ALUNOS_DASHBOARD: 'StudentDashboard',
     GERENCIAR_ALUNOS_TURMA: 'ManageClassStudents',
-    ADICIONAR_ALUNO: 'AddStudentScreen'
+    ADICIONAR_ALUNO: 'AddStudentScreen',
+    ALUNOS_HISTORICO: 'ClassHistoryScreen'
 };

@@ -1,17 +1,34 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Button, TextInput, Card, Title, Text } from 'react-native-paper';
 import QRCode from 'react-native-qrcode-svg';
 import { AuthContext } from '../scripts/Authenticator';
 import ClassService from '../services/ClassService';
 import { ROUTES } from '../constants/routes';
+import { generateClassQRCodeData } from '../services/GeoLocationQRCodeService';
 
 const AddStudentScreen = ({ navigation, route }) => {
     const { classId } = route.params;
+    const { user } = useContext(AuthContext);
     const [name, setName] = useState('');
     const [matricula, setMatricula] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showQRCode, setShowQRCode] = useState(false);
+    const [qrCodeValue, setQrCodeValue] = useState('');
+    const [classData, setClassData] = useState(null);
+
+    useEffect(() => {
+        const loadClassData = async () => {
+            try {
+                const data = await ClassService.getClass(classId);
+                setClassData(data);
+            } catch (error) {
+                console.error('Error loading class:', error);
+                showSnackbar('Falha ao carregar dados da turma');
+            }
+        };
+        loadClassData();
+    }, [classId]);
 
     const handleAddStudent = async () => {
         if (!name || !matricula) {
@@ -50,9 +67,39 @@ const AddStudentScreen = ({ navigation, route }) => {
         }
     };
 
-    const toggleQRCode = () => {
-        setShowQRCode(!showQRCode);
-    };
+    /* const toggleQRCode = () => {
+          setShowQRCode(!showQRCode);
+    }; */
+
+    const generateQRCode = async () => {
+        try {
+              setIsLoading(true);
+              
+              if (!classData) {
+                  throw new Error('Dados da turma não disponíveis');
+              }
+
+              if (showQRCode) {
+                  setShowQRCode(false);
+                  return;
+              }
+
+
+              // Generate proper QR code data using the service
+              const qrData = generateClassQRCodeData({
+                  ...classData,
+                  teacherId: user.tuitionNumber
+              });
+              
+              setQrCodeValue(qrData);
+              setShowQRCode(true);
+          } catch (error) {
+              console.error('Error generating QR code:', error);
+              showSnackbar('Falha ao gerar QR code');
+          } finally {
+              setIsLoading(false);
+          }
+    }; 
 
     return (
         <View style={styles.container}>
@@ -87,21 +134,18 @@ const AddStudentScreen = ({ navigation, route }) => {
 
                     <Button
                         mode="outlined"
-                        onPress={toggleQRCode}
+                        onPress={generateQRCode}
                         style={styles.button}
                         icon="qrcode"
                     >
                         {showQRCode ? 'Ocultar' : 'Adicionar via QR Code'}
                     </Button>
 
-                    {showQRCode && (
+                    {showQRCode && qrCodeValue && (
                         <View style={styles.qrContainer}>
                             {/* <Text style={styles.qrTitle}>Adicionar Alunos</Text> */}
                             <QRCode
-                                value={JSON.stringify({
-                                    classId: classId,
-                                    type: 'addStudent'
-                                })}
+                                value={qrCodeValue}
                                 size={200}
                                 color="#6200ee"
                                 backgroundColor="white"

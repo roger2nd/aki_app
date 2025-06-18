@@ -38,6 +38,7 @@ export const generateClassQRCodeData = (classData) => {
     radius: classData.geofenceRadius,
     teacherId: classData.teacherId,
     timestamp: new Date().toISOString(),
+    type: 'class',
   });
 };
 
@@ -48,5 +49,43 @@ export const generateAttendanceQRCodeData = (classId, teacherId, location) => {
     location,
     timestamp: new Date().toISOString(),
     type: 'attendance',
+    expiresAt: new Date(Date.now() + 20 * 60 * 1000).toISOString(),
   });
+};
+
+export const parseQRCodeData = (data) => {
+  try {
+    const parsed = JSON.parse(data);
+    
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Invalid QR code data');
+    }
+
+    if (parsed.version !== 1) {
+      throw new Error('Unsupported QR code version');
+    }
+
+    if (parsed.type === 'class') {
+      if (!parsed.classId || !parsed.teacherId) {
+        throw new Error('Invalid class QR code');
+      }
+    } 
+    else if (parsed.type === 'attendance') {
+      if (!parsed.classId || !parsed.teacherId || !parsed.location) {
+        throw new Error('Invalid attendance QR code');
+      }
+      
+      if (new Date(parsed.expiresAt) < new Date()) {
+        throw new Error('QR code expired');
+      }
+    } 
+    else {
+      throw new Error('Unknown QR code type');
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing QR code:', error);
+    throw new Error('Invalid QR code: ' + error.message);
+  }
 };

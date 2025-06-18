@@ -92,7 +92,6 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
       
       let attendanceData = {};
       
-      // Find records for this specific class and date
       const dateRecords = attendanceRecords.find(r => 
         r.date === formattedDate && r.classId === selectedClass
       );
@@ -103,7 +102,7 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
         });
       }
       
-      // Initialize attendance for today's date
+      // Attendance do dia atual
       if (isToday()) {
         studentsList.forEach(student => {
           if (attendanceData[student.id] === undefined) {
@@ -289,7 +288,7 @@ const TakeAttendanceScreen = ({ navigation, route }) => {
           filteredStudents.map(student => (
             <List.Item
               key={student.id}
-              title={`${student.name} (${student.tuitionNumber || student.matricula})`} // TODO: Workaround. Em algum ponto do codigo foi trocado tuitionNumber por matricula 
+              title={`${student.name} (${student.tuitionNumber || student.matricula})`} //Workaround. TODO: Em algum ponto do codigo foi trocado tuitionNumber por matricula, checa por ambos
               left={() => (
                 <Checkbox
                   status={attendance[student.id] ? 'checked' : 'unchecked'}

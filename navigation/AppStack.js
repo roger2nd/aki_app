@@ -5,6 +5,7 @@ import { Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Button } from 'react-native-paper';
 import { AuthContext } from '../scripts/Authenticator';
+import { HeaderButton } from '../components/HeaderButton';
 import HomeScreen from '../screens/Home';
 import ManageStudentsScreen from '../screens/GerenciadorAlunos';
 import TakeAttendanceScreen from '../screens/ChecarChamada';
@@ -12,6 +13,7 @@ import ViewAttendanceScreen from '../screens/VisualizarChamada';
 import ClassroomConfigScreen from '../screens/SalaDeAulaConfig';
 import StudentDashboard from '../screens/AlunosDashboard';
 import AddStudentScreen from '../screens/AdicionarAluno';   
+import ClassHistoryScreen from '../screens/AlunosHistoricoDeAula';   
 import { ROUTES } from '../constants/routes';
 
 const NativeStack = createNativeStackNavigator();
@@ -41,9 +43,10 @@ const AdminTabs = () => {
         tabBarActiveTintColor: '#6200ee',
         tabBarInactiveTintColor: 'gray',
         headerRight: () => (
-          <Pressable onPress={() => logout()} style={{ marginRight: 16 }}>
-            <MaterialCommunityIcons name="logout" size={24} color="#6200ee" />
-          </Pressable>
+          <HeaderButton 
+            iconName="logout" 
+            onPress={logout} 
+          />
         )
       })}
     >
@@ -72,7 +75,7 @@ const AdminTabs = () => {
 };
 
 const MainStack = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   return (
     <NativeStack.Navigator>
@@ -89,19 +92,16 @@ const MainStack = () => {
           options={{ 
             title: 'Meu Dashboard',
             headerRight: () => (
-              <Button 
-                icon="logout"
-                textColor="#6200ee"
-                onPress={() => logout()}
-              >
-                Sair
-              </Button>
+              <HeaderButton 
+                iconName="logout" 
+                onPress={logout} 
+              />
             )
           }}   
         />
       )}
       
-      {/* Shared Screens */}
+      {/* Modal Screens */}
       <NativeStack.Screen
         name={ROUTES.CLASS_CONFIG}
         component={ClassroomConfigScreen}
@@ -119,6 +119,11 @@ const MainStack = () => {
         name={ROUTES.GERENCIADOR_ALUNOS}
         component={ManageStudentsScreen}
         options={{ title: 'Alunos da Turma' }}
+      />
+      <NativeStack.Screen 
+        name={ROUTES.ALUNOS_HISTORICO}
+        component={ClassHistoryScreen}
+        options={{ title: 'Histórico de Aulas' }}
       />
     </NativeStack.Navigator>
   );

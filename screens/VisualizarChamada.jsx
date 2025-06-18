@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Card, Text, Button, ActivityIndicator } from 'react-native-paper';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthContext } from '../scripts/Authenticator';
 import { HeaderButton } from '../components/HeaderButton';
 import { DatePickerModal } from 'react-native-paper-dates';
@@ -146,16 +146,16 @@ const ViewAttendanceScreen = ({ navigation }) => {
                 >
                   <Card.Content>
                     <Text style={styles.cardTitle}>
-                      <MaterialIcons name="calendar-today" size={18} /> {record.date}
+                      <MaterialCommunityIcons name="calendar-today" size={18} /> {record.date}
                     </Text>
                     <Text style={styles.className}>{record.className}</Text>
                     <View style={styles.statsContainer}>
                       <Text style={styles.present}>
-                        <MaterialIcons name="check" size={16} color="green" /> 
+                        <MaterialCommunityIcons name="check" size={16} color="green" /> 
                         {record.records.filter(r => r.present).length} Presentes
                       </Text>
                       <Text style={styles.absent}>
-                        <MaterialIcons name="close" size={16} color="red" /> 
+                        <MaterialCommunityIcons name="close" size={16} color="red" /> 
                         {record.records.filter(r => !r.present).length} Faltantes
                       </Text>
                     </View>
